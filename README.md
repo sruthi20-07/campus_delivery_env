@@ -1,5 +1,12 @@
+---
+title: Campus Delivery Env
+emoji: 🚚
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+---
 # Campus Delivery Fraud Detection Environment
-
 ## 📌 Overview
 
 This project simulates a real-world campus delivery system where AI agents must detect fraudulent pickup requests.
