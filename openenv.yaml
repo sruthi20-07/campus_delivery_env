@@ -1,0 +1,10 @@
+name: campus-delivery-env
+description: Detect fake delivery requests
+version: 1.0
+
+entrypoint: env/environment.py
+
+tasks:
+  - name: easy_detect_fake
+  - name: medium_choose_action
+  - name: hard_edge_cases
