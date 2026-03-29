@@ -3,12 +3,13 @@ name = "campus-delivery-env"
 version = "0.1.0"
 description = "Campus delivery fraud detection OpenEnv environment"
 authors = [{ name = "Sruthi Vindula" }]
+
 dependencies = [
     "pydantic",
     "fastapi",
     "uvicorn",
     "openai",
-    "openenv>=0.2.0"
+    "openenv"
 ]
 
 [project.scripts]
