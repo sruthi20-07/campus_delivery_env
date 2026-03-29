@@ -2,9 +2,7 @@
 name = "campus-delivery-env"
 version = "0.1.0"
 description = "Campus delivery fraud detection OpenEnv environment"
-authors = [
-    { name = "Sruthi Vindula" }
-]
+authors = [{ name = "Sruthi Vindula" }]
 dependencies = [
     "pydantic",
     "fastapi",
@@ -13,4 +11,4 @@ dependencies = [
 ]
 
 [tool.openenv]
-entry_point = "env.environment:DeliveryEnv"
+env_class = "env.environment:DeliveryEnv"
