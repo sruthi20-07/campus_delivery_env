@@ -2,7 +2,6 @@ from fastapi import FastAPI
 from env.environment import DeliveryEnv
 from env.models import Action
 
-# 🔥 IMPORTANT: disable proxy prefix issues
 app = FastAPI()
 
 env = DeliveryEnv()
@@ -14,7 +13,7 @@ def home():
 @app.post("/reset")
 def reset():
     obs = env.reset()
-    return {"observation": obs.model_dump()}
+    return obs.model_dump()   # ✅ IMPORTANT FIX
 
 @app.post("/step")
 def step(action: dict):
