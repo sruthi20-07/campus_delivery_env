@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-app = FastAPI()
+app = FastAPI(root_path="")
 
 # Dummy state
 state_data = {"step": 0}
