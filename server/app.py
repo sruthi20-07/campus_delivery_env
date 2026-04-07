@@ -2,21 +2,19 @@ from fastapi import FastAPI
 from env.environment import DeliveryEnv
 from env.models import Action
 
-# ✅ IMPORTANT: root_path fix for HF routing
-app = FastAPI(root_path="")
+# 🔥 IMPORTANT: disable proxy prefix issues
+app = FastAPI()
 
 env = DeliveryEnv()
 
 @app.get("/")
 def home():
-    return {"message": "Campus Delivery Env Running"}
+    return {"status": "ok"}
 
 @app.post("/reset")
 def reset():
     obs = env.reset()
-    return {
-        "observation": obs.model_dump()
-    }
+    return {"observation": obs.model_dump()}
 
 @app.post("/step")
 def step(action: dict):

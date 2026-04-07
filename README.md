@@ -109,3 +109,4 @@ Total Score: ~6.9
 docker build -t campus-env .
 docker run campus-env
 ```
+# rebuild
