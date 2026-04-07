@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from env.environment import DeliveryEnv
 from env.models import Action
 
-app = FastAPI()
+# ✅ IMPORTANT: root_path fix for HF routing
+app = FastAPI(root_path="")
+
 env = DeliveryEnv()
 
 @app.get("/")
@@ -12,7 +14,9 @@ def home():
 @app.post("/reset")
 def reset():
     obs = env.reset()
-    return obs.model_dump()
+    return {
+        "observation": obs.model_dump()
+    }
 
 @app.post("/step")
 def step(action: dict):
