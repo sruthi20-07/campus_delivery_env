@@ -1,13 +1,10 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from env.environment import DeliveryEnv
+from env.models import Action
 
-app = FastAPI(root_path="")
+app = FastAPI()
 
-# Dummy state
-state_data = {"step": 0}
-
-class Action(BaseModel):
-    decision: str
+env = DeliveryEnv()
 
 @app.get("/")
 def home():
@@ -15,21 +12,20 @@ def home():
 
 @app.post("/reset")
 def reset():
-    global state_data
-    state_data = {"step": 0}
-    return {"step": 0}   # SIMPLE JSON
+    obs = env.reset()
+    return obs.model_dump()
 
 @app.post("/step")
-def step(action: Action):
-    global state_data
-    state_data["step"] += 1
+def step(action: dict):
+    act = Action(**action)
+    obs, reward, done, info = env.step(act)
     return {
-        "observation": state_data,
-        "reward": {"score": 0.5},
-        "done": state_data["step"] > 5,
-        "info": {}
+        "observation": obs.model_dump(),
+        "reward": reward.model_dump(),
+        "done": done,
+        "info": info
     }
 
 @app.get("/state")
 def state():
-    return state_data
+    return env.state()
