@@ -3,7 +3,6 @@ from env.environment import DeliveryEnv
 from env.models import Action
 
 app = FastAPI()
-
 env = DeliveryEnv()
 
 @app.get("/")

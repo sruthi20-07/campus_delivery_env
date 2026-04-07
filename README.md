@@ -111,3 +111,4 @@ docker run campus-env
 ```
 # rebuild
 final final rebuild
+clean build
