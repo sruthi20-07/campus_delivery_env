@@ -3,13 +3,15 @@ from .models import *
 
 class DeliveryEnv:
     def __init__(self):
+        # ✅ FIXED: properly load data
         with open("data/requests.json") as f:
             self.data = json.load(f)
+
         self.index = 0
-        self.task = "easy"   # ✅ default task
+        self.task = "easy_detect_fake"   # ✅ match YAML
 
     # ✅ Accept task name
-    def reset(self, task="easy"):
+    def reset(self, task="easy_detect_fake"):
         self.index = 0
         self.task = task
         return self._get_obs()
@@ -37,7 +39,7 @@ class DeliveryEnv:
     # ✅ MAIN FIX: 3 TASK GRADERS
     def _reward(self, req, action):
 
-        # 🟢 EASY TASK (basic real vs fake)
+        # 🟢 EASY TASK
         if self.task == "easy_detect_fake":
             if req.is_real and action.decision == "accept":
                 score = 1.0
@@ -48,7 +50,7 @@ class DeliveryEnv:
 
             return Reward(score=score, reason="easy grading")
 
-        # 🟡 MEDIUM TASK (adds verify logic)
+        # 🟡 MEDIUM TASK
         elif self.task == "medium_choose_action":
             score = 0.0
 
@@ -64,11 +66,10 @@ class DeliveryEnv:
 
             return Reward(score=score, reason="medium grading")
 
-        # 🔴 HARD TASK (your original logic)
+        # 🔴 HARD TASK
         elif self.task == "hard_edge_cases":
             score = 0.0
 
-            # original logic
             if req.is_real and action.decision == "accept":
                 score += 0.4
             elif not req.is_real and action.decision == "reject":
@@ -92,7 +93,10 @@ class DeliveryEnv:
             if req.device_trust_score > 0.8 and action.decision == "accept":
                 score += 0.2
 
-            # ❗ Normalize score to 0–1
+            # ✅ Normalize
             score = max(0.0, min(score, 1.0))
 
             return Reward(score=score, reason="hard grading")
+
+        # ✅ Fallback (VERY IMPORTANT)
+        return Reward(score=0.0, reason="unknown task")

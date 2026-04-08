@@ -2,7 +2,7 @@ from env.environment import DeliveryEnv
 from env.models import Action
 import os
 
-# ✅ Safe OpenAI import (FIXED)
+# ✅ Safe OpenAI import
 try:
     from openai import OpenAI
 except Exception as e:
@@ -10,33 +10,40 @@ except Exception as e:
     OpenAI = None
 
 
-# ✅ Safe client initialization (FIXED)
-if OpenAI is not None:
+# ✅ Safe client initialization
+api_key = os.environ.get("API_KEY")
+
+if OpenAI is not None and api_key:
     client = OpenAI(
         base_url=os.environ.get("API_BASE_URL"),
-        api_key=os.environ.get("API_KEY"),
+        api_key=api_key,
     )
 else:
+    print("[WARNING] OpenAI client not initialized (missing API key)", flush=True)
     client = None
 
 
 def run_task(task_name):
-    task_name = "campus_delivery"
-
-    # START block
+    # ✅ DO NOT override task_name
     print(f"[START] task={task_name}", flush=True)
 
     env = DeliveryEnv()
-    obs = env.reset(task=task_name)
-    done = False
 
+    # ✅ Pass correct task
+    try:
+        obs = env.reset(task=task_name)
+    except TypeError:
+        # fallback safety (just in case)
+        obs = env.reset()
+
+    done = False
     total_score = 0
     step_num = 0
 
     while not done:
         step_num += 1
 
-        # ✅ Safe LLM call (FIXED - no crash)
+        # ✅ Safe LLM call
         try:
             if client is not None:
                 _ = client.chat.completions.create(
@@ -47,7 +54,7 @@ def run_task(task_name):
         except Exception as e:
             print(f"[ERROR] LLM call failed: {e}", flush=True)
 
-        # Rule-based agent (UNCHANGED)
+        # ✅ Rule-based agent (unchanged)
         if obs.request and obs.request.user_history > 2:
             action = Action(decision="accept")
         elif obs.request and obs.request.order_id is None:
@@ -71,5 +78,11 @@ def run_task(task_name):
 
 
 if __name__ == "__main__":
-    for task in ["easy_detect_fake", "medium_choose_action", "hard_edge_cases"]:
-        run_task(task)
+    # ✅ MUST match openenv.yaml EXACTLY
+    tasks = ["easy_detect_fake", "medium_choose_action", "hard_edge_cases"]
+
+    for task in tasks:
+        try:
+            run_task(task)
+        except Exception as e:
+            print(f"[ERROR] Task {task} failed: {e}", flush=True)
