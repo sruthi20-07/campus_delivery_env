@@ -6,9 +6,12 @@ class DeliveryEnv:
         with open("data/requests.json") as f:
             self.data = json.load(f)
         self.index = 0
+        self.task = "easy"   # ✅ default task
 
-    def reset(self):
+    # ✅ Accept task name
+    def reset(self, task="easy"):
         self.index = 0
+        self.task = task
         return self._get_obs()
 
     def _get_obs(self):
@@ -19,6 +22,8 @@ class DeliveryEnv:
 
     def step(self, action: Action):
         current = Request(**self.data[self.index])
+
+        # ✅ Task-based reward
         reward = self._reward(current, action)
 
         self.index += 1
@@ -27,39 +32,67 @@ class DeliveryEnv:
         return self._get_obs(), reward, done, {}
 
     def state(self):
-        return {"index": self.index}
+        return {"index": self.index, "task": self.task}
 
+    # ✅ MAIN FIX: 3 TASK GRADERS
     def _reward(self, req, action):
-        score = 0.0
 
-        # 🟢 EASY: detect fake vs real
-        if req.is_real and action.decision == "accept":
-            score += 0.4
-        elif not req.is_real and action.decision == "reject":
-            score += 0.4
+        # 🟢 EASY TASK (basic real vs fake)
+        if self.task == "easy_detect_fake":
+            if req.is_real and action.decision == "accept":
+                score = 1.0
+            elif not req.is_real and action.decision == "reject":
+                score = 1.0
+            else:
+                score = 0.0
 
-        # 🟡 MEDIUM: safer decisions
-        if action.decision == "verify":
-            score += 0.2
+            return Reward(score=score, reason="easy grading")
 
-        # 🔴 HARD: fraud signals
+        # 🟡 MEDIUM TASK (adds verify logic)
+        elif self.task == "medium_choose_action":
+            score = 0.0
 
-        if not req.order_exists and action.decision == "reject":
-            score += 0.3
+            if req.is_real and action.decision == "accept":
+                score += 0.5
+            elif not req.is_real and action.decision == "reject":
+                score += 0.5
 
-        if not req.screenshot_uploaded and action.decision == "verify":
-            score += 0.2
+            if action.decision == "verify":
+                score += 0.5
 
-        if req.active_orders > 2 and action.decision == "reject":
-            score += 0.2
+            score = min(score, 1.0)
 
-        if req.cancel_after_pickup and action.decision == "reject":
-            score += 0.3
+            return Reward(score=score, reason="medium grading")
 
-        if req.device_trust_score > 0.8 and action.decision == "accept":
-            score += 0.2
+        # 🔴 HARD TASK (your original logic)
+        elif self.task == "hard_edge_cases":
+            score = 0.0
 
-        if score == 0:
-            score = -1.0
+            # original logic
+            if req.is_real and action.decision == "accept":
+                score += 0.4
+            elif not req.is_real and action.decision == "reject":
+                score += 0.4
 
-        return Reward(score=score, reason="advanced fraud detection reward")
+            if action.decision == "verify":
+                score += 0.2
+
+            if not req.order_exists and action.decision == "reject":
+                score += 0.3
+
+            if not req.screenshot_uploaded and action.decision == "verify":
+                score += 0.2
+
+            if req.active_orders > 2 and action.decision == "reject":
+                score += 0.2
+
+            if req.cancel_after_pickup and action.decision == "reject":
+                score += 0.3
+
+            if req.device_trust_score > 0.8 and action.decision == "accept":
+                score += 0.2
+
+            # ❗ Normalize score to 0–1
+            score = max(0.0, min(score, 1.0))
+
+            return Reward(score=score, reason="hard grading")

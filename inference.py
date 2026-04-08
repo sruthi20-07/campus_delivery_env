@@ -20,14 +20,14 @@ else:
     client = None
 
 
-def run_task():
+def run_task(task_name):
     task_name = "campus_delivery"
 
     # START block
     print(f"[START] task={task_name}", flush=True)
 
     env = DeliveryEnv()
-    obs = env.reset()
+    obs = env.reset(task=task_name)
     done = False
 
     total_score = 0
@@ -71,4 +71,5 @@ def run_task():
 
 
 if __name__ == "__main__":
-    run_task()
+    for task in ["easy_detect_fake", "medium_choose_action", "hard_edge_cases"]:
+        run_task(task)
